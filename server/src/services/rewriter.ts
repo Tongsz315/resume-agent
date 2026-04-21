@@ -1,38 +1,35 @@
-import axios from 'axios';
+import { callLLM } from './llm/provider';
 
-const GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-const GLM_MODEL = process.env.GLM_MODEL || 'glm-4-flash';
-
-async function callGLM(systemPrompt: string, userMessage: string): Promise<string> {
-  const apiKey = process.env.GLM_API_KEY;
-  if (!apiKey) {
-    throw new Error('未配置 GLM_API_KEY');
-  }
-
+function parseJSONResponse(text: string): any | null {
   try {
-    const response = await axios.post(
-      GLM_API_URL,
-      {
-        model: GLM_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        timeout: 120000
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      return JSON.parse(codeBlockMatch[1].trim());
+    }
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      let depth = 0;
+      let startIdx = -1;
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === '{') {
+          if (depth === 0) startIdx = i;
+          depth++;
+        } else if (text[i] === '}') {
+          depth--;
+          if (depth === 0 && startIdx !== -1) {
+            try {
+              return JSON.parse(text.substring(startIdx, i + 1));
+            } catch {
+              continue;
+            }
+          }
+        }
       }
-    );
-    return response.data.choices[0].message.content;
-  } catch (error: any) {
-    console.error('GLM API 错误:', error);
-    throw new Error('AI 服务错误');
+      return JSON.parse(jsonMatch[0]);
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -52,21 +49,21 @@ ${jdText}
   "rewriteReason": "说明优化了哪些方面，100字左右"
 }
 
-注意：不要编造事实，基于原始内容优化。`;
+注意：不要编造事实，基于原始内容优化。只返回JSON，不要包含其他文字。`;
 
   try {
-    const result = await callGLM('你是专业的简历优化顾问。', prompt);
-    const jsonMatch = result.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        originalText,
-        rewrittenTextBasic: parsed.rewrittenTextBasic || originalText,
-        rewrittenTextAdvanced: parsed.rewrittenTextAdvanced || originalText,
-        rewriteReason: parsed.rewriteReason || '优化完成'
-      };
+    const result = await callLLM('你是专业的简历优化顾问。', prompt);
+    if (!result.success || !result.content) {
+      throw new Error(result.error || '调用失败');
     }
-    throw new Error('解析失败');
+    const parsed = parseJSONResponse(result.content);
+    if (!parsed) throw new Error('JSON解析失败');
+    return {
+      originalText,
+      rewrittenTextBasic: parsed.rewrittenTextBasic || originalText,
+      rewrittenTextAdvanced: parsed.rewrittenTextAdvanced || originalText,
+      rewriteReason: parsed.rewriteReason || '优化完成'
+    };
   } catch (error) {
     console.error('改写失败:', error);
     return {
@@ -95,21 +92,21 @@ ${jdText}
   "quantizationTips": ["建议补充的量化维度1", "建议补充的量化维度2"]
 }
 
-注意：不要编造事实，基于原始内容优化。`;
+注意：不要编造事实，基于原始内容优化。只返回JSON，不要包含其他文字。`;
 
   try {
-    const result = await callGLM('你是专业的简历优化顾问。', prompt);
-    const jsonMatch = result.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        projectIntro: parsed.projectIntro || projectText,
-        personalContribution: parsed.personalContribution || projectText,
-        starVersion: parsed.starVersion || projectText,
-        quantizationTips: parsed.quantizationTips || []
-      };
+    const result = await callLLM('你是专业的简历优化顾问。', prompt);
+    if (!result.success || !result.content) {
+      throw new Error(result.error || '调用失败');
     }
-    throw new Error('解析失败');
+    const parsed = parseJSONResponse(result.content);
+    if (!parsed) throw new Error('JSON解析失败');
+    return {
+      projectIntro: parsed.projectIntro || projectText,
+      personalContribution: parsed.personalContribution || projectText,
+      starVersion: parsed.starVersion || projectText,
+      quantizationTips: parsed.quantizationTips || []
+    };
   } catch (error) {
     console.error('项目优化失败:', error);
     return {
@@ -135,15 +132,13 @@ ${text}
 请只返回优化后的文本内容。`;
 
   try {
-    const result = await callGLM('你是专业的文案优化专家。', prompt);
-    return { refinedText: result.trim() };
+    const result = await callLLM('你是专业的文案优化专家。', prompt);
+    if (!result.success || !result.content) {
+      throw new Error(result.error || '调用失败');
+    }
+    return { refinedText: result.content.trim() };
   } catch (error) {
     console.error('二次优化失败:', error);
     return { refinedText: text };
   }
-}
-
-export async function recordFeedback(type: string, contentType: string, content: string) {
-  console.log(`收到反馈 - 类型: ${type}, 内容类型: ${contentType}`);
-  return { success: true };
 }

@@ -1,35 +1,26 @@
-/* Tailwind base styles with dark mode support */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Loading spinner animation */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 0.8s linear infinite;
+@layer base {
+  .loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+  }
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* Fade in animation */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
@@ -40,51 +31,48 @@
   animation: fadeIn 0.6s ease-out forwards;
 }
 
-/* Dark mode styles */
-.dark {
-  color-scheme: dark;
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.35); }
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@keyframes glow-purple {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.35); }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+.glow-effect {
+  animation: glow 4s ease-in-out infinite;
 }
 
-.dark ::-webkit-scrollbar-track {
-  background: #1f2937;
+.glow-effect-purple {
+  animation: glow-purple 4s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.modern { color-scheme: light; }
+.modern ::-webkit-scrollbar-track { background: #f1f5f9; }
+.modern ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3b82f6, #6366f1); border-radius: 4px; }
+.modern ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #2563eb, #4f46e5); }
+.modern *:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+
+.dark-tech { color-scheme: dark; }
+.dark-tech ::-webkit-scrollbar-track { background: #0f172a; }
+.dark-tech ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #a855f7, #6366f1); border-radius: 4px; }
+.dark-tech ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #9333ea, #4f46e5); }
+.dark-tech *:focus-visible { outline: 2px solid #a855f7; outline-offset: 2px; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-20px) scale(0.95); }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-/* Custom focus styles */
-*:focus-visible {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
-}
-
-/* Transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: ease-in-out;
-  transition-duration: 150ms;
-}
+.toast-enter { animation: toast-in 0.3s ease-out forwards; }
+.toast-exit { animation: toast-out 0.2s ease-in forwards; }

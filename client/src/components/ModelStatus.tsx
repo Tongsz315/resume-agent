@@ -9,38 +9,42 @@ interface ModelStatusResponse {
 }
 
 const ModelStatus: React.FC = () => {
-  const { isDark } = useTheme();
+  const { isModern } = useTheme();
   const { t } = useLocale();
   const [status, setStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   const [modelName, setModelName] = useState<string>('Unknown');
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
 
   useEffect(() => {
-    // 检查模型连接状态
+    let mounted = true;
     const checkModelStatus = async () => {
       try {
         const response = await fetch('/api/status');
         if (response.ok) {
           const data: ModelStatusResponse = await response.json();
-          if (data.success) {
-            setStatus('connected');
-            setModelName(data.model);
-            setHasApiKey(data.hasApiKey);
-          } else {
-            setStatus('error');
+          if (mounted) {
+            if (data.success) {
+              setStatus('connected');
+              setModelName(data.model);
+              setHasApiKey(data.hasApiKey);
+            } else {
+              setStatus('error');
+            }
           }
         } else {
-          setStatus('error');
+          if (mounted) setStatus('error');
         }
-      } catch (error) {
-        setStatus('error');
+      } catch {
+        if (mounted) setStatus('error');
       }
     };
 
     checkModelStatus();
-    // 每30秒检查一次状态
-    const interval = setInterval(checkModelStatus, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(checkModelStatus, 60000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const getStatusText = () => {
@@ -53,14 +57,24 @@ const ModelStatus: React.FC = () => {
   };
 
   return (
-    <div className={`fixed bottom-4 right-4 p-3 rounded-xl shadow-lg z-40 transition-all ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`fixed bottom-4 right-4 p-3 rounded-2xl shadow-xl z-40 ${
+      isModern
+        ? 'bg-white/90 backdrop-blur border border-slate-200/50'
+        : 'bg-slate-900/90 backdrop-blur border border-slate-700/50'
+    }`}>
       <div className="flex items-center gap-3">
-        <div className={`w-3 h-3 rounded-full ${status === 'connected' && hasApiKey ? 'bg-green-500' : status === 'loading' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'}`} />
+        <div className={`w-3 h-3 rounded-full ${
+          status === 'connected' && hasApiKey
+            ? 'bg-emerald-500'
+            : status === 'loading'
+              ? 'bg-amber-500 animate-pulse'
+              : 'bg-red-500'
+        }`} />
         <div className="flex flex-col">
-          <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          <span className={`text-sm font-semibold ${isModern ? 'text-slate-700' : 'text-slate-300'}`}>
             {getStatusText()}
           </span>
-          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          <span className={`text-xs ${isModern ? 'text-slate-500' : 'text-slate-500'}`}>
             {modelName}
           </span>
           {!hasApiKey && status === 'connected' && (

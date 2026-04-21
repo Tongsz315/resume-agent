@@ -2,7 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import { analyzeResume } from '../services/analyzer.js';
 import { parseFile } from '../services/fileParser.js';
-import { rewriteExperience, optimizeProject, refineContent, recordFeedback } from '../services/rewriter.js';
+import { rewriteExperience, optimizeProject, refineContent } from '../services/rewriter.js';
+import { recordFeedback, getFeedbackStats, getFeedbacks, analyzeFeedbackTrends } from '../services/feedback.js';
 
 const router = Router();
 
@@ -58,6 +59,15 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+const MAX_TEXT_LENGTH = 10000;
+
+function validateTextLength(text: string, fieldName: string): string | null {
+  if (text.length > MAX_TEXT_LENGTH) {
+    return `${fieldName}内容过长，请控制在${MAX_TEXT_LENGTH}字符以内`;
+  }
+  return null;
+}
+
 // 分析简历
 router.post('/analyze', async (req, res) => {
   try {
@@ -70,6 +80,12 @@ router.post('/analyze', async (req, res) => {
 
     if (!jdText?.trim()) {
       res.status(400).json({ success: false, error: '请提供岗位描述' });
+      return;
+    }
+
+    const lenError = validateTextLength(resumeText, '简历') || validateTextLength(jdText, '岗位描述');
+    if (lenError) {
+      res.status(400).json({ success: false, error: lenError });
       return;
     }
 
@@ -140,15 +156,49 @@ router.post('/refine', async (req, res) => {
   }
 });
 
-// 收集反馈
+// 收集反馈（增强版本）
 router.post('/feedback', async (req, res) => {
   try {
-    const { type, contentType, content } = req.body;
-    await recordFeedback(type, contentType, content);
+    const feedback = req.body;
+    await recordFeedback(feedback);
     res.json({ success: true });
   } catch (error: any) {
     console.error('反馈记录错误:', error);
     res.status(500).json({ success: false, error: '记录失败' });
+  }
+});
+
+// 获取反馈统计
+router.get('/feedback/stats', async (req, res) => {
+  try {
+    const stats = getFeedbackStats();
+    res.json({ success: true, stats });
+  } catch (error: any) {
+    console.error('获取统计错误:', error);
+    res.status(500).json({ success: false, error: '获取失败' });
+  }
+});
+
+// 获取反馈数据
+router.get('/feedback/data', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 100;
+    const feedbacks = getFeedbacks(limit);
+    res.json({ success: true, feedbacks });
+  } catch (error: any) {
+    console.error('获取反馈数据错误:', error);
+    res.status(500).json({ success: false, error: '获取失败' });
+  }
+});
+
+// 获取反馈趋势分析
+router.get('/feedback/trends', async (req, res) => {
+  try {
+    const trends = analyzeFeedbackTrends();
+    res.json({ success: true, trends });
+  } catch (error: any) {
+    console.error('获取趋势错误:', error);
+    res.status(500).json({ success: false, error: '获取失败' });
   }
 });
 

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
 import analysisRouter from './routes/analysis.js';
+import streamRouter from './routes/stream.js';
 import { requestLogger, errorLogger, checkRateLimit } from './middleware/index.js';
 
 // 加载环境变量
@@ -42,13 +43,14 @@ app.use('/api', (req: express.Request, res: express.Response, next: express.Next
 
 // 路由
 app.use('/api', analysisRouter);
+app.use('/api', streamRouter);
 
 // 健康检查
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: '3.0.0',
   });
 });
 
@@ -68,8 +70,10 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 app.listen(PORT, () => {
   console.log(`🚀 Resume Agent Server running on http://localhost:${PORT}`);
   console.log(`📋 API endpoints:`);
-  console.log(`   POST /api/upload    - 上传并解析简历文件`);
-  console.log(`   POST /api/analyze   - 分析简历并生成自我介绍`);
-  console.log(`   GET  /health        - 健康检查`);
+  console.log(`   POST /api/upload         - 上传并解析简历文件`);
+  console.log(`   POST /api/analyze        - 分析简历并生成自我介绍`);
+  console.log(`   POST /api/analyze/stream - 流式分析简历（SSE）`);
+  console.log(`   GET  /health             - 健康检查`);
   console.log(`📊 Rate limit: 20 requests/minute`);
+  console.log(`✨ V3.0 features: Unified LLM + Parallel Analysis + Enhanced JSON Parser + Input Validation`);
 });

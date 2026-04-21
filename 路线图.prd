@@ -1,0 +1,542 @@
+# 📄 resume-agent v2.0 产品需求文档 (PRD)
+
+> **文档版本**：v2.0.0  
+> **撰写人**：佟仕喆（基于你的技术+产品双背景）  
+> **最后更新**：2026-04  
+> **目标用户**：高校应届生、1-3年经验求职者、校招/社招场景
+
+---
+
+## 📋 1. 文档概览
+
+| 项目 | 内容 |
+|------|------|
+| **产品名称** | Resume Agent - 智能简历分析助手 |
+| **产品定位** | 基于大模型的「简历诊断+岗位匹配+话术生成」一体化求职工具 |
+| **核心价值** | 降低简历优化门槛，提升面试准备效率，用数据驱动求职决策 |
+| **技术底座** | React18+TS + Express+TS + GLM-4 + TailwindCSS |
+| **目标指标** | 分析准确率≥90%、用户留存率≥40%、平均使用时长≥8分钟 |
+
+---
+
+## 🎯 2. 产品目标与范围
+
+### 2.1 核心目标（OKR）
+```
+O1：提升简历分析的专业度与可信度
+  KR1：关键词匹配算法准确率从75%→90%（人工抽样验证）
+  KR2：用户「采纳建议」比例从30%→60%
+  KR3：NPS净推荐值≥35
+
+O2：优化用户体验，降低使用门槛
+  KR1：首屏加载时间≤1.5s，分析响应≤8s（P95）
+  KR2：新手引导完成率≥85%
+  KR3：移动端适配覆盖率100%
+
+O3：构建数据闭环，支撑产品迭代
+  KR1：用户反馈收集率≥25%
+  KR2：建立A/B测试框架，支持3+实验并行
+  KR3：沉淀1000+条有效分析日志用于模型优化
+```
+
+### 2.2 功能范围（MVP+迭代）
+```
+✅ MVP（当前已实现）
+  • 简历文本/文件上传（PDF/Word）
+  • 基础JD匹配分析（优势/劣势/关键词）
+  • 定制化自我介绍生成
+  • 一键复制结果
+
+🔄 v2.0 迭代（本期重点）
+  • ✨ 界面全面重构（现代化+动效+无障碍）
+  • 🎯 岗位类型策略引擎（技术/产品/设计/运营）
+  • 💬 流式输出+追问式交互
+  • 📊 分析结果可视化（雷达图/对比卡片）
+  • 🔁 历史版本对比与进度追踪
+
+🔮 v3.0 规划（后续迭代）
+  • 🤖 多模型路由（成本/效果/延迟智能切换）
+  • 🌐 国际化支持（英文/小语种简历）
+  • 📱 小程序/插件端延伸
+  • 💰 商业化模块（Pro功能+付费策略）
+```
+
+---
+
+## 🧩 3. 功能需求详述
+
+### 3.1 核心流程：简历分析任务
+```mermaid
+graph LR
+    A[用户上传简历] --> B{输入方式}
+    B -->|粘贴文本 | C[文本预处理]
+    B -->|上传文件 | D[PDF/Word解析]
+    D --> E[OCR增强*可选]
+    C & E --> F[解析预览确认]
+    F --> G[输入目标岗位信息]
+    G --> H[AI分析引擎]
+    H --> I[流式输出结果]
+    I --> J[结果展示+交互操作]
+    J --> K[用户反馈收集]
+    K --> L[数据沉淀]
+```
+
+### 3.2 功能模块拆解
+
+#### 🔹 模块1：智能文件解析（增强版）
+| 需求项 | 详细描述 | 验收标准 |
+|--------|---------|---------|
+| 多格式支持 | PDF/Word/纯文本，未来扩展图片简历 | 支持主流格式，解析成功率≥95% |
+| 解析预览 | 上传后展示解析文本，支持用户手动修正 | 修正内容实时同步至分析输入 |
+| OCR增强 | 对扫描件/图片型简历，调用多模态模型提取文字 | 识别准确率≥85%，增加「置信度提示」 |
+| 隐私保护 | 文件解析后24h自动删除，支持「匿名模式」 | 符合《个人信息保护法》基本要求 |
+
+#### 🔹 模块2：岗位策略引擎（新增）
+```typescript
+// 策略配置示例：根据岗位类型动态调整分析维度
+interface AnalysisStrategy {
+  jobType: 'technical' | 'product' | 'design' | 'operation';
+  focusDimensions: string[]; // 重点分析维度
+  promptTemplate: string;    // 对应Prompt模板
+  weightConfig: {           // 各维度权重
+    experience: number;
+    skills: number;
+    project: number;
+    softSkills: number;
+  };
+}
+
+// 使用示例：技术岗更关注技术深度，产品岗更关注业务思维
+const strategies: Record<string, AnalysisStrategy> = {
+  technical: {
+    jobType: 'technical',
+    focusDimensions: ['技术栈匹配', '项目复杂度', '开源贡献', '系统设计'],
+    promptTemplate: 'tech_analysis_v2',
+    weightConfig: { experience: 0.3, skills: 0.4, project: 0.25, softSkills: 0.05 }
+  },
+  product: {
+    jobType: 'product',
+    focusDimensions: ['业务理解', '数据驱动', '用户洞察', '跨团队协作'],
+    promptTemplate: 'product_analysis_v2',
+    weightConfig: { experience: 0.25, skills: 0.2, project: 0.35, softSkills: 0.2 }
+  }
+};
+```
+
+#### 🔹 模块3：流式交互体验（新增）
+| 特性 | 实现方案 | 用户价值 |
+|------|---------|---------|
+| **SSE流式输出** | 后端采用`Express+EventSource`，前端`fetch+ReadableStream`[[56]] | 减少等待焦虑，提升感知速度 |
+| **追问式对话** | 基于上下文记忆，支持「针对某段经历深入优化」 | 满足个性化需求，提升专业感 |
+| **中断/重试** | 用户可随时暂停分析，修改输入后继续 | 增强控制感，降低试错成本 |
+| **打字机动效** | 结合Framer Motion实现逐字浮现+光标闪烁[[39]] | 增强AI交互的真实感与趣味性 |
+
+#### 🔹 模块4：可视化结果展示（重构）
+```tsx
+// 结果卡片组件设计（伪代码）
+<AnalysisResultCard>
+  {/* 顶部：匹配度仪表盘 */}
+  <MatchGauge value={85} trend="+12%" />
+  
+  {/* 中部：多维度雷达图 */}
+  <RadarChart dimensions={['技术匹配', '经验契合', '软实力', '潜力']} />
+  
+  {/* 下部：可折叠详情 */}
+  <CollapsibleSection title="✨ 你的优势">
+    <AdvantageItem 
+      content="3年React项目经验，与岗位技术栈高度匹配"
+      source="简历第2段"
+      onEdit={() => openEditor()}
+    />
+  </CollapsibleSection>
+  
+  {/* 底部：操作区 */}
+  <ActionGroup>
+    <Button onClick={copyIntro}>📋 复制自我介绍</Button>
+    <Button variant="outline" onClick={exportPDF}>📥 导出报告</Button>
+    <Feedback thumbsUp={() => track('like')} thumbsDown={() => track('dislike')} />
+  </ActionGroup>
+</AnalysisResultCard>
+```
+
+#### 🔹 模块5：反馈与数据闭环（新增）
+```typescript
+// 用户反馈数据结构
+interface UserFeedback {
+  sessionId: string;
+  timestamp: number;
+  // 显式反馈
+  rating?: 1|2|3|4|5;          // 整体满意度
+  suggestionType?: 'accuracy' | 'relevance' | 'format' | 'other';
+  comment?: string;
+  // 隐式反馈
+  actions: Array<'copy' | 'export' | 'regenerate' | 'edit'>;
+  timeSpent: number;           // 页面停留时长
+  editDistance?: number;       // 用户修改内容的编辑距离
+  // 上下文
+  input: { resumePreview: string, jdText: string };
+  output: { analysis: AnalysisResult, intro: string };
+}
+
+// 数据应用方向
+// 1️⃣ Prompt优化：聚类低评分case，迭代提示词
+// 2️⃣ 模型微调：构建高质量SFT数据集
+// 3️⃣ 产品迭代：识别高频流失环节，优化用户体验
+```
+
+---
+
+## 🎨 4. 界面优化方案（解决「过于普通」问题）
+
+### 4.1 设计原则
+```
+✅ 专业感：采用深色渐变+微光效，传递「智能工具」调性
+✅ 清晰度：信息层级分明，关键数据突出展示
+✅ 愉悦感：适度动效+微交互，避免枯燥
+✅ 包容性：遵循WCAG 2.1，支持键盘导航/色弱模式
+```
+
+### 4.2 视觉升级方案
+
+#### 🔹 色彩系统（基于Tailwind扩展）
+```javascript
+// tailwind.config.js 扩展
+theme: {
+  extend: {
+    colors: {
+      primary: {
+        50: '#f0f9ff',  // 浅蓝背景
+        500: '#0ea5e9', // 主按钮/高亮
+        600: '#0284c7', // hover状态
+        900: '#0c4a6e', // 深色文字
+      },
+      accent: {
+        purple: '#8b5cf6',  // AI相关元素
+        emerald: '#10b981', // 成功/优势
+        amber: '#f59e0b',   // 待优化/提醒
+      },
+      surface: {
+        1: '#ffffff',       // 卡片背景
+        2: '#f8fafc',       // 页面背景
+        3: '#1e293b',       // 深色模式
+      }
+    },
+    animation: {
+      'fade-in': 'fadeIn 0.3s ease-out',
+      'slide-up': 'slideUp 0.4s ease-out',
+      'pulse-glow': 'pulseGlow 2s infinite',
+    }
+  }
+}
+```
+
+#### 🔹 布局重构（响应式+模块化）
+```
+┌─────────────────────────────────┐
+│  🎯 Header                      │
+│  Logo + 用户入口 + 深色模式切换  │
+├─────────────────────────────────┤
+│  📋 Main Content (Grid Layout)  │
+│  ┌─────────────┬─────────────┐  │
+│  │  输入区     │  预览区     │  │
+│  │  • 拖拽上传 │  • 实时解析 │  │
+│  │  • 文本编辑 │  • 修正入口 │  │
+│  │  • 岗位表单 │  • 信心指数 │  │
+│  └─────────────┴─────────────┘  │
+│  ✨ 分析结果区（默认折叠）      │
+│  • 匹配度仪表盘 + 雷达图        │
+│  • 优势/待优化 可折叠卡片       │
+│  • 自我介绍 + 一键复制          │
+│  • 追问输入框（流式交互）       │
+├─────────────────────────────────┤
+│  📊 Footer                      │
+│  反馈入口 + 使用指南 + 隐私声明  │
+└─────────────────────────────────┘
+```
+
+#### 🔹 动效设计（Framer Motion实现）
+```tsx
+// 示例：结果卡片入场动画
+import { motion, useAnimation } from 'framer-motion';
+
+const ResultCard = ({ analysis }) => {
+  const controls = useAnimation();
+  
+  // 滚动到可视区域时触发动画
+  useInView(controls, { once: true });
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={controls.start({ opacity: 1, y: 0 })}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="card-shadow rounded-xl bg-surface-1 p-6"
+    >
+      {/* 内容 */}
+    </motion.div>
+  );
+};
+
+// 流式输出打字机效果
+const TypewriterText = ({ text }) => (
+  <motion.span
+    initial={{ width: 0 }}
+    animate={{ width: "100%" }}
+    transition={{ duration: text.length * 0.02, ease: "linear" }}
+    className="inline-block overflow-hidden whitespace-nowrap"
+  >
+    {text}
+    <motion.span
+      animate={{ opacity: [1, 0] }}
+      transition={{ repeat: Infinity, duration: 0.8 }}
+      className="inline-block w-0.5 h-4 ml-0.5 bg-primary-500"
+    />
+  </motion.span>
+);
+```
+
+#### 🔹 组件库选型建议
+> 推荐采用 **shadcn/ui** 作为基础组件库[[30]]，原因：
+> - ✅ 代码完全可控，便于定制品牌样式
+> - ✅ 基于Radix UI，无障碍支持完善
+> - ✅ 与Tailwind深度集成，开发效率高
+> - ✅ 社区活跃，组件丰富（表单/弹窗/标签页等）
+
+```bash
+# 快速集成示例
+npx shadcn@latest init
+npx shadcn@latest add button card dialog tabs progress
+```
+
+### 4.3 界面优化前后对比
+
+| 维度 | 当前版本 | v2.0优化后 |
+|------|---------|-----------|
+| **视觉风格** | 基础白底+默认组件 | 深色渐变+微光效+品牌色系统 |
+| **信息架构** | 线性流程，结果平铺 | 卡片折叠+可视化图表+渐进披露 |
+| **交互反馈** | 加载转圈+静态结果 | 流式输出+动效过渡+微交互提示 |
+| **移动适配** | 基础响应式 | 移动端专属布局+手势操作优化 |
+| **无障碍** | 未专项优化 | 键盘导航+ARIA标签+色弱模式 |
+
+---
+
+## ⚙️ 5. 技术实现方案
+
+### 5.1 后端架构升级
+```
+server/
+├── src/
+│   ├── middleware/
+│   │   ├── rateLimiter.ts    # 限流（防刷）
+│   │   ├── analytics.ts      # 埋点收集
+│   │   └── errorHandler.ts   # 统一错误处理
+│   ├── services/
+│   │   ├── analyzer/
+│   │   │   ├── index.ts      # 分析引擎入口
+│   │   │   ├── strategy/     # 岗位策略模式
+│   │   │   ├── prompt/       # Prompt模板管理
+│   │   │   └── parser/       # 文件解析增强
+│   │   ├── llm/
+│   │   │   ├── provider.ts   # 多模型抽象层
+│   │   │   ├── glm.ts        # 智谱实现
+│   │   │   └── fallback.ts   # 降级策略
+│   │   └── cache/
+│   │       └── redis.ts      # 分析结果缓存
+│   ├── routes/
+│   │   ├── analysis.ts       # SSE流式接口
+│   │   ├── feedback.ts       # 反馈收集
+│   │   └── health.ts         # 健康检查
+│   └── utils/
+│       ├── zodSchemas.ts     # 请求校验
+│       └── logger.ts         # 结构化日志
+```
+
+### 5.2 关键接口设计（SSE流式）
+```typescript
+// POST /api/analyze/stream
+// 请求
+{
+  "resumeText": "...",
+  "jdText": "...",
+  "jobType": "technical",  // 新增：岗位类型
+  "stream": true           // 启用流式
+}
+
+// 响应（SSE格式）
+data: {"type":"progress","message":"解析简历中...","percent":20}
+data: {"type":"analysis","section":"strengths","content":["优势1"]}
+data: {"type":"analysis","section":"intro","content":"生成的自我介绍..."}
+data: {"type":"done","sessionId":"abc123"}
+
+// 前端消费
+const response = await fetch('/api/analyze/stream', { method: 'POST', body: JSON.stringify(data) });
+const reader = response.body?.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader!.read();
+  if (done) break;
+  const lines = decoder.decode(value).split('\n');
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const event = JSON.parse(line.slice(6));
+      handleStreamEvent(event); // 更新UI
+    }
+  }
+}
+```
+
+### 5.3 性能优化措施
+| 优化点 | 方案 | 预期收益 |
+|--------|------|---------|
+| **首屏加载** | 代码分割+React.lazy+预加载关键资源 | FCP ≤1.2s |
+| **分析耗时** | 缓存相似请求+轻量模型兜底+并发解析 | P95 ≤6s |
+| **Bundle体积** | Tree-shaking+图片压缩+CDN托管 | 主包 ≤300KB |
+| **移动端体验** | 虚拟滚动+图片懒加载+触控优化 | 滑动帧率 ≥55fps |
+
+---
+
+## 📊 6. 数据指标与监控
+
+### 6.1 核心指标看板
+```typescript
+// 埋点事件定义
+enum AnalyticsEvent {
+  // 转化漏斗
+  PAGE_VIEW = 'page_view',
+  UPLOAD_START = 'upload_start',
+  ANALYSIS_REQUEST = 'analysis_request',
+  RESULT_VIEW = 'result_view',
+  ACTION_COPY = 'action_copy',
+  
+  // 质量指标
+  ANALYSIS_DURATION = 'analysis_duration',
+  USER_RATING = 'user_rating',
+  FEEDBACK_SUBMIT = 'feedback_submit',
+  
+  // 技术监控
+  API_ERROR = 'api_error',
+  PARSE_FAIL = 'parse_fail',
+  LLM_TIMEOUT = 'llm_timeout'
+}
+
+// 关键指标计算
+const metrics = {
+  // 业务指标
+  conversionRate: resultViews / analysisRequests,
+  satisfactionScore: avg(ratings), // 1-5分
+  retentionRate: returnUsers / totalUsers,
+  
+  // 技术指标
+  apiSuccessRate: successRequests / totalRequests,
+  p95Latency: percentile(latencies, 95),
+  errorRate: errors / totalRequests
+};
+```
+
+### 6.2 监控告警配置
+```yaml
+# prometheus.yml 示例
+scrape_configs:
+  - job_name: 'resume-agent'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['server:3001']
+
+# 告警规则
+groups:
+  - name: resume-agent-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(api_errors_total[5m]) > 0.1
+        for: 2m
+        annotations:
+          summary: "API错误率超过10%"
+          
+      - alert: SlowAnalysis
+        expr: histogram_quantile(0.95, rate(analysis_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        annotations:
+          summary: "P95分析耗时超过10秒"
+```
+
+---
+
+## 🗓️ 7. 迭代计划与资源评估
+
+### 7.1 里程碑规划
+```mermaid
+gantt
+    title resume-agent v2.0 迭代计划
+    dateFormat  YYYY-MM-DD
+    section 准备阶段
+    需求评审+技术方案    :2026-05-01, 5d
+    UI设计稿定稿        :2026-05-03, 4d
+    
+    section 开发阶段
+    后端：SSE+策略引擎  :2026-05-06, 8d
+    前端：界面重构+动效 :2026-05-06, 10d
+    联调+测试          :2026-05-14, 5d
+    
+    section 发布阶段
+    灰度发布（10%用户） :2026-05-19, 3d
+    全量发布+监控      :2026-05-22, 2d
+    用户反馈收集       :2026-05-24, 7d
+```
+
+### 7.2 资源投入评估
+| 角色 | 人天 | 主要任务 |
+|------|------|---------|
+| **前端开发** | 12人天 | 界面重构、动效实现、SSE对接、移动端适配 |
+| **后端开发** | 10人天 | SSE接口、策略引擎、缓存优化、监控埋点 |
+| **UI/UX设计** | 5人天 | 视觉稿、交互原型、无障碍检查 |
+| **测试** | 4人天 | 功能测试、兼容性测试、性能压测 |
+| **产品** | 3人天 | 需求跟进、用户反馈分析、A/B实验设计 |
+
+> 💡 **总计**：约34人天，建议2人全职开发2.5周完成
+
+---
+
+## 🎁 8. 附录：快速落地清单
+
+### ✅ 本周可执行的3个优化（低成本高回报）
+1. **添加SSE流式输出**（后端2h + 前端3h）
+   ```typescript
+   // server: 添加SSE端点
+   app.get('/api/analyze/stream', async (req, res) => {
+     res.setHeader('Content-Type', 'text/event-stream');
+     // ... 流式调用GLM并推送
+   });
+   ```
+
+2. **引入shadcn/ui组件**（1天）
+   ```bash
+   npx shadcn@latest add card button progress tabs
+   # 替换现有ResultDisplay组件
+   ```
+
+3. **添加基础反馈入口**（2h）
+   ```tsx
+   // 结果页底部添加
+   <div className="flex items-center gap-4 mt-6 pt-4 border-t">
+     <span>有帮助吗？</span>
+     <Button variant="ghost" size="sm" onClick={() => track('like')}>👍</Button>
+     <Button variant="ghost" size="sm" onClick={() => track('dislike')}>👎</Button>
+   </div>
+   ```
+
+### 📚 推荐学习资源
+- 🎨 [shadcn/ui 中文文档](https://www.shadcn.com.cn/docs) - 快速定制组件[[33]]
+- 🎬 [Framer Motion 动画教程](https://motion.net.cn/docs/framer) - 实现流畅动效[[41]]
+- 📡 [SSE流式输出实战](https://cloud.tencent.com/developer/article/2547375) - 大模型场景最佳实践[[56]]
+- ♿ [WCAG 2.1 无障碍指南](https://www.w3.org/WAI/WCAG21/quickref/) - 提升产品包容性
+
+---
+
+> 💬 **最后建议**：  
+> 你兼具**后端工程能力**与**产品思维**，这个项目非常适合打造成「技术深度+产品体验」双亮点作品。建议：  
+> 1️⃣ 优先落地 **SSE流式+界面重构**，快速提升用户感知价值  
+> 2️⃣ 用 **用户反馈数据** 驱动后续迭代，比主观猜测更可靠  
+> 3️⃣ 在简历/面试中突出「**从0到1优化产品**」的完整思考链路  
+
+需要我针对某个模块（比如策略引擎的Prompt设计、SSE的异常处理、无障碍实现细节）展开更详细的技术方案吗？🚀

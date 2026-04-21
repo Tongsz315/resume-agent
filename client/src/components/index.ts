@@ -19,3 +19,6 @@ export { default as FeedbackButtons } from './FeedbackButtons';
 export { default as ExperienceRewriter } from './ExperienceRewriter';
 export { default as ProjectOptimizer } from './ProjectOptimizer';
 export { default as ResultTabs } from './ResultTabs';
+export { default as StrategySelector } from './StrategySelector';
+export { default as StreamOutput } from './StreamOutput';
+export { default as ToastProvider, useToast } from './Toast';

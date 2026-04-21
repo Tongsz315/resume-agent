@@ -17,8 +17,10 @@ import {
   LanguageSwitch,
   ModelStatus,
   ResultTabs,
+  useToast,
 } from './components';
 import { useTheme, useHistory, useLocale, AnalysisRecord } from './contexts';
+import { useCopyToClipboard } from './hooks/useCopyToClipboard';
 import './index.css';
 
 // 类型定义
@@ -50,9 +52,11 @@ interface AnalysisResult {
 type InputMode = 'text' | 'file';
 
 function App() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
   const { addRecord } = useHistory();
   const { t } = useLocale();
+  const { showToast } = useToast();
+  const { copy } = useCopyToClipboard();
 
   // 状态
   const [inputMode, setInputMode] = useState<InputMode>('text');
@@ -167,18 +171,18 @@ function App() {
   };
 
   // 复制自我介绍
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (result?.selfIntroduction) {
-      navigator.clipboard.writeText(result.selfIntroduction);
-      alert(t('copySuccess'));
+      const ok = await copy(result.selfIntroduction);
+      showToast(ok ? t('copySuccess') : '复制失败', ok ? 'success' : 'error');
     }
   };
 
   // 复制面试问题
-  const copyQuestions = () => {
+  const copyQuestions = async () => {
     if (result?.interviewQuestions) {
-      navigator.clipboard.writeText(result.interviewQuestions.join('\n'));
-      alert(t('copySuccess'));
+      const ok = await copy(result.interviewQuestions.join('\n'));
+      showToast(ok ? t('copySuccess') : '复制失败', ok ? 'success' : 'error');
     }
   };
 
@@ -189,11 +193,14 @@ function App() {
     setResult(record.result);
   };
 
+  // 主题样式配置
+  const isModern = theme === 'modern';
+
   return (
-    <div className={`min-h-screen py-8 px-4 transition-colors duration-300 ${
-      isDark
-        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-        : 'bg-gradient-to-br from-blue-50 to-indigo-100'
+    <div className={`min-h-screen py-8 px-4 transition-all duration-500 ${
+      isModern
+        ? 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100'
+        : 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950'
     }`}>
       {/* 主题切换和语言切换 */}
       <ThemeToggle />
@@ -202,20 +209,22 @@ function App() {
       <div className="max-w-4xl mx-auto">
         {/* 标题 */}
         <div className="text-center mb-8">
-          <h1 className={`text-4xl font-bold mb-2 ${
-            isDark ? 'text-white' : 'text-indigo-700'
+          <h1 className={`text-5xl font-extrabold mb-3 bg-clip-text text-transparent ${
+            isModern
+              ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600'
+              : 'bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400'
           }`}>
             {t('appTitle')}
           </h1>
-          <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
+          <p className={`text-lg ${isModern ? 'text-slate-600' : 'text-slate-400'}`}>
             {t('appSubtitle')}
           </p>
           <button
             onClick={() => setHistoryOpen(true)}
-            className={`mt-4 px-4 py-2 rounded-lg font-medium transition-colors ${
-              isDark
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-white text-gray-600 hover:bg-gray-50 shadow'
+            className={`mt-5 px-6 py-3 rounded-2xl font-semibold transition-all ${
+              isModern
+                ? 'bg-white text-slate-700 hover:bg-slate-50 shadow-xl hover:shadow-2xl border border-slate-200'
+                : 'bg-slate-800/80 text-slate-200 hover:bg-slate-700/90 shadow-xl hover:shadow-2xl border border-slate-700/50'
             }`}
           >
             📜 查看历史
@@ -223,8 +232,10 @@ function App() {
         </div>
 
         {/* 主卡片 */}
-        <div className={`rounded-2xl shadow-lg p-6 md:p-8 ${
-          isDark ? 'bg-gray-800' : 'bg-white'
+        <div className={`rounded-3xl p-6 md:p-8 transition-all duration-500 ${
+          isModern
+            ? 'bg-white/80 backdrop-blur-xl shadow-2xl border border-slate-200/50 glow-effect'
+            : 'bg-slate-900/80 backdrop-blur-xl shadow-2xl border border-slate-700/50 glow-effect-purple'
         }`}>
           {/* 输入模式切换 */}
           <InputModeToggle
@@ -244,7 +255,9 @@ function App() {
           {/* 文件上传区域 */}
           {inputMode === 'file' && (
             <div className="mb-6">
-              <label className="block text-lg font-medium mb-2">
+              <label className={`block text-lg font-semibold mb-3 ${
+                isModern ? 'text-slate-800' : 'text-slate-200'
+              }`}>
                 上传简历文件
               </label>
               <FileUploader
@@ -254,7 +267,7 @@ function App() {
                 onDragOver={handleDragOver}
               />
               {isUploading && (
-                <div className="mt-2 text-sm">
+                <div className="mt-3 text-sm">
                   <LoadingSpinner message="正在解析文件..." />
                 </div>
               )}
@@ -293,10 +306,12 @@ function App() {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className={`flex-1 py-3 rounded-xl font-semibold text-lg transition-all ${
+              className={`flex-1 py-4 rounded-2xl font-bold text-lg transition-all ${
                 isLoading
-                  ? (isDark ? 'bg-gray-600' : 'bg-gray-400') + ' cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl'
+                  ? (isModern ? 'bg-slate-300 text-slate-500' : 'bg-slate-700 text-slate-500') + ' cursor-not-allowed'
+                  : isModern
+                    ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
+                    : 'bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
               }`}
             >
               {isLoading ? (
@@ -307,10 +322,10 @@ function App() {
             </button>
             <button
               onClick={handleReset}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                isDark
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`px-6 py-4 rounded-2xl font-semibold transition-all ${
+                isModern
+                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
               }`}
             >
               🔄 重置
@@ -371,15 +386,17 @@ function App() {
         )}
 
         {/* 使用提示 */}
-        <div className={`mt-8 p-4 rounded-xl text-center text-sm ${
-          isDark ? 'bg-gray-800/50 text-gray-400' : 'bg-white/50 text-gray-600'
+        <div className={`mt-8 p-5 rounded-2xl text-center text-sm ${
+          isModern
+            ? 'bg-white/50 backdrop-blur text-slate-600 border border-slate-200/50'
+            : 'bg-slate-900/50 backdrop-blur text-slate-400 border border-slate-700/50'
         }`}>
           <p>💡 {t('mobileHint')}</p>
         </div>
 
         {/* 页脚 */}
         <div className="mt-8 text-center text-sm">
-          <p className={isDark ? 'text-gray-500' : 'text-gray-500'}>
+          <p className={`${isModern ? 'text-slate-500' : 'text-slate-500'}`}>
             {t('poweredBy')}
           </p>
         </div>

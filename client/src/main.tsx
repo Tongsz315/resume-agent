@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider, HistoryProvider, LocaleProvider } from './contexts';
+import { ToastProvider } from './components';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -9,7 +10,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <HistoryProvider>
         <LocaleProvider>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </LocaleProvider>
       </HistoryProvider>
     </ThemeProvider>
