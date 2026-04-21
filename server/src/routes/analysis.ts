@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { analyzeResume } from '../services/analyzer.js';
 import { parseFile } from '../services/fileParser.js';
+import { rewriteExperience, optimizeProject, refineContent, recordFeedback } from '../services/rewriter.js';
 
 const router = Router();
 
@@ -88,6 +89,66 @@ router.post('/analyze', async (req, res) => {
       success: false,
       error: error.message || '分析失败，请稍后重试'
     });
+  }
+});
+
+// 经历改写
+router.post('/rewrite', async (req, res) => {
+  try {
+    const { originalText, jdText, rewriteType } = req.body;
+    if (!originalText?.trim() || !jdText?.trim()) {
+      res.status(400).json({ success: false, error: '缺少必要参数' });
+      return;
+    }
+    const result = await rewriteExperience(originalText, jdText, rewriteType || 'experience');
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error('改写错误:', error);
+    res.status(500).json({ success: false, error: '改写失败，请稍后重试' });
+  }
+});
+
+// 项目优化
+router.post('/project-optimize', async (req, res) => {
+  try {
+    const { projectText, jdText } = req.body;
+    if (!projectText?.trim() || !jdText?.trim()) {
+      res.status(400).json({ success: false, error: '缺少必要参数' });
+      return;
+    }
+    const result = await optimizeProject(projectText, jdText);
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error('项目优化错误:', error);
+    res.status(500).json({ success: false, error: '优化失败，请稍后重试' });
+  }
+});
+
+// 二次优化
+router.post('/refine', async (req, res) => {
+  try {
+    const { text, goal } = req.body;
+    if (!text?.trim()) {
+      res.status(400).json({ success: false, error: '缺少必要参数' });
+      return;
+    }
+    const result = await refineContent(text, goal || 'more-concise');
+    res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error('二次优化错误:', error);
+    res.status(500).json({ success: false, error: '优化失败，请稍后重试' });
+  }
+});
+
+// 收集反馈
+router.post('/feedback', async (req, res) => {
+  try {
+    const { type, contentType, content } = req.body;
+    await recordFeedback(type, contentType, content);
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('反馈记录错误:', error);
+    res.status(500).json({ success: false, error: '记录失败' });
   }
 });
 

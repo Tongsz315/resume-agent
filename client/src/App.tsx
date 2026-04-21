@@ -16,6 +16,7 @@ import {
   SalaryRange,
   LanguageSwitch,
   ModelStatus,
+  ResultTabs,
 } from './components';
 import { useTheme, useHistory, useLocale, AnalysisRecord } from './contexts';
 import './index.css';
@@ -319,42 +320,52 @@ function App() {
 
         {/* 结果展示 */}
         {result && (
-          <div className="mt-6 space-y-6 fade-in">
+          <div className="fade-in">
             {/* 简历评分 */}
             {result.resumeScore && (
-              <ResumeScore
-                completeness={result.resumeScore.completeness}
-                formatting={result.resumeScore.formatting}
-                keywords={result.resumeScore.keywords}
-              />
+              <div className="mb-6">
+                <ResumeScore
+                  completeness={result.resumeScore.completeness}
+                  formatting={result.resumeScore.formatting}
+                  keywords={result.resumeScore.keywords}
+                />
+              </div>
             )}
 
-            {/* 分析报告 */}
-            <ResultDisplay
+            {/* Tab 切换的主要内容 */}
+            <ResultTabs
               result={result}
-              onCopy={copyToClipboard}
+              jdText={jdText}
+              onCopyIntro={copyToClipboard}
               onExport={() => setExportOpen(true)}
+              resumeText={resumeText}
             />
 
             {/* 薪资参考 */}
             {result.salaryRange && (
-              <SalaryRange
-                range={result.salaryRange}
-                position="该岗位"
-              />
+              <div className="mt-6">
+                <SalaryRange
+                  range={result.salaryRange}
+                  position="该岗位"
+                />
+              </div>
             )}
 
             {/* 优化建议 */}
             {result.optimizationTips && result.optimizationTips.length > 0 && (
-              <OptimizationTips tips={result.optimizationTips} />
+              <div className="mt-6">
+                <OptimizationTips tips={result.optimizationTips} />
+              </div>
             )}
 
             {/* 面试问题 */}
             {result.interviewQuestions && result.interviewQuestions.length > 0 && (
-              <InterviewQuestions
-                questions={result.interviewQuestions}
-                onCopy={copyQuestions}
-              />
+              <div className="mt-6">
+                <InterviewQuestions
+                  questions={result.interviewQuestions}
+                  onCopy={copyQuestions}
+                />
+              </div>
             )}
           </div>
         )}

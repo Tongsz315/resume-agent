@@ -123,7 +123,7 @@ ${companyBackground ? `## 公司背景：\n${companyBackground}` : ''}
   "weaknesses": ["劣势1", "劣势2", ...],  // 需要提升的方面，与JD要求有差距的地方
   "keywordMatch": 75,  // 0-100的匹配度分数
   "matchAnalysis": "详细的匹配分析说明，100-200字",  // 包含如何弥补劣势的建议
-  "interviewQuestions": ["面试问题1", "面试问题2", ...],  // 根据简历和JD预测5-8个高频面试问题
+  "interviewQuestions": ["面试问题1", "面试问题2", ...],  // 预测5-8个真实面试问题，包含：1）基于简历经历的深挖问题；2）技术/专业能力问题；3）行为/情景面试题；4）职业规划与匹配度问题。问题要具体、深入，不是泛泛而谈的问题
   "resumeScore": {  // 简历评分
     "completeness": 80,  // 完整度 0-100
     "formatting": 70,  // 规范性 0-100

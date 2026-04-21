@@ -15,3 +15,7 @@ export { default as BatchUpload } from './BatchUpload';
 export { default as LanguageSwitch } from './LanguageSwitch';
 export { default as MobileHint } from './MobileHint';
 export { default as ModelStatus } from './ModelStatus';
+export { default as FeedbackButtons } from './FeedbackButtons';
+export { default as ExperienceRewriter } from './ExperienceRewriter';
+export { default as ProjectOptimizer } from './ProjectOptimizer';
+export { default as ResultTabs } from './ResultTabs';
