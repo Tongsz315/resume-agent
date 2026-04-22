@@ -1,61 +1,31 @@
 import React from 'react';
 import { useTheme } from '../contexts';
 
-interface SalaryRangeProps {
-  range: {
-    min: number;
-    max: number;
-    currency: string;
-    unit: string;
-  };
+const SalaryRange: React.FC<{
+  range: { min: number; max: number; currency: string; unit: string };
   position: string;
-}
-
-const SalaryRange: React.FC<SalaryRangeProps> = ({ range, position }) => {
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
+}> = ({ range, position }) => {
+  const { isDark } = useTheme();
+  const accent = isDark ? '#2997ff' : '#0071e3';
 
   return (
-    <div className={`mt-6 rounded-3xl shadow-2xl p-6 md:p-8 ${
-      isModern
-        ? 'bg-white/80 backdrop-blur border border-slate-200/50 glow-effect'
-        : 'bg-slate-900/80 backdrop-blur border border-slate-700/50 glow-effect-purple'
+    <div className={`rounded-2xl p-6 md:p-8 text-center transition-colors ${
+      isDark ? 'bg-[#1d1d1f] border border-[rgba(255,255,255,0.06)]' : 'bg-white border border-[rgba(0,0,0,0.04)]'
     }`}>
-      <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${
-        isModern
-          ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600'
-          : 'bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400'
-      }`}>
-        💰 市场薪资参考
-      </h2>
-      <div className="text-center">
-        <div className="inline-flex items-baseline gap-3">
-          <span className={`text-5xl font-extrabold ${
-            isModern
-              ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600'
-              : 'bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400'
-          }`}>
-            {range.min.toLocaleString()}
-          </span>
-          <span className={`text-3xl ${isModern ? 'text-slate-400' : 'text-slate-500'}`}>-</span>
-          <span className={`text-5xl font-extrabold ${
-            isModern
-              ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600'
-              : 'bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400'
-          }`}>
-            {range.max.toLocaleString()}
-          </span>
-          <span className={`text-xl ${isModern ? 'text-slate-500' : 'text-slate-400'}`}>
-            {range.currency}/{range.unit}
-          </span>
-        </div>
-        <p className={`mt-4 text-lg font-medium ${isModern ? 'text-slate-600' : 'text-slate-400'}`}>
-          {position} 典型薪资区间（基于市场数据）
-        </p>
-        <p className={`mt-3 text-sm ${isModern ? 'text-slate-400' : 'text-slate-500'}`}>
-          注：实际薪资受地区、工作经验、公司规模等因素影响
-        </p>
+      <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-[#1d1d1f]'}`}>市场薪资参考</h2>
+      <div className="inline-flex items-baseline gap-3">
+        <span className="text-4xl md:text-5xl font-bold" style={{ color: accent }}>
+          {range.min.toLocaleString()}
+        </span>
+        <span className={`text-2xl ${isDark ? 'text-[#6e6e73]' : 'text-[#86868b]'}`}>—</span>
+        <span className="text-4xl md:text-5xl font-bold" style={{ color: accent }}>
+          {range.max.toLocaleString()}
+        </span>
+        <span className={`text-lg ${isDark ? 'text-[#6e6e73]' : 'text-[#86868b]'}`}>{range.currency}/{range.unit}</span>
       </div>
+      <p className={`mt-4 text-sm ${isDark ? 'text-[#6e6e73]' : 'text-[#86868b]'}`}>
+        {position} 典型薪资区间（基于市场数据）
+      </p>
     </div>
   );
 };

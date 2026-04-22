@@ -7,39 +7,29 @@ interface InputModeToggleProps {
 }
 
 const InputModeToggle: React.FC<InputModeToggleProps> = ({ mode, onModeChange }) => {
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
+  const { isDark } = useTheme();
 
   return (
-    <div className="flex gap-3 mb-6">
-      <button
-        onClick={() => onModeChange('text')}
-        className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
-          mode === 'text'
-            ? isModern
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-              : 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
-            : isModern
-              ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-              : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700'
-        }`}
-      >
-        📝 粘贴文本
-      </button>
-      <button
-        onClick={() => onModeChange('file')}
-        className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all ${
-          mode === 'file'
-            ? isModern
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-              : 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
-            : isModern
-              ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-              : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700'
-        }`}
-      >
-        📎 上传文件
-      </button>
+    <div className="flex gap-1 mb-6 p-1 rounded-xl inline-flex" style={{
+      background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+    }}>
+      {(['text', 'file'] as const).map((m) => (
+        <button
+          key={m}
+          onClick={() => onModeChange(m)}
+          className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            mode === m
+              ? isDark
+                ? 'bg-[#2997ff] text-white shadow-lg'
+                : 'bg-white text-[#1d1d1f] shadow-sm'
+              : isDark
+                ? 'text-[#a1a1a6] hover:text-white'
+                : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+          }`}
+        >
+          {m === 'text' ? '文本输入' : '文件上传'}
+        </button>
+      ))}
     </div>
   );
 };

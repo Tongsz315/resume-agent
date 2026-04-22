@@ -14,105 +14,61 @@ interface ResultTabsProps {
 
 type TabType = 'analysis' | 'intro' | 'rewrite' | 'project';
 
-const ResultTabs: React.FC<ResultTabsProps> = ({ 
-  result, 
-  jdText, 
-  onCopyIntro, 
-  onExport, 
-  resumeText 
-}) => {
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
+const ResultTabs: React.FC<ResultTabsProps> = ({ result, jdText, onCopyIntro, onExport, resumeText: _resumeText }) => {
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('analysis');
 
-  const tabs: { key: TabType; label: string; icon: string }[] = [
-    { key: 'analysis', label: '匹配分析', icon: '📊' },
-    { key: 'intro', label: '自我介绍', icon: '👋' },
-    { key: 'rewrite', label: '经历改写', icon: '✨' },
-    { key: 'project', label: '项目优化', icon: '🚀' }
+  const tabs: { key: TabType; label: string }[] = [
+    { key: 'analysis', label: '匹配分析' },
+    { key: 'intro', label: '自我介绍' },
+    { key: 'rewrite', label: '经历改写' },
+    { key: 'project', label: '项目优化' },
   ];
 
   return (
-    <div className="mt-6">
-      <div className="flex flex-wrap gap-3 mb-6">
+    <div>
+      <div className="flex gap-1 mb-6 p-1 rounded-xl inline-flex" style={{
+        background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+      }}>
         {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-5 py-3 rounded-2xl font-semibold transition-all ${
+            className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeTab === tab.key
-                ? isModern
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-xl'
-                  : 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl'
-                : isModern
-                  ? 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-lg'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 shadow-lg'
+                ? isDark ? 'bg-[#2997ff] text-white shadow-lg' : 'bg-white text-[#1d1d1f] shadow-sm'
+                : isDark ? 'text-[#a1a1a6] hover:text-white' : 'text-[#6e6e73] hover:text-[#1d1d1f]'
             }`}
           >
-            {tab.icon} {tab.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
       <div className="space-y-6">
-        {activeTab === 'analysis' && (
-          <ResultDisplay 
-            result={result} 
-            onCopy={onCopyIntro} 
-            onExport={onExport} 
-          />
-        )}
-
+        {activeTab === 'analysis' && <ResultDisplay result={result} onCopy={onCopyIntro} onExport={onExport} />}
         {activeTab === 'intro' && (
-          <div className={`rounded-3xl shadow-2xl p-6 ${
-            isModern
-              ? 'bg-white/80 backdrop-blur border border-slate-200/50'
-              : 'bg-slate-900/80 backdrop-blur border border-slate-700/50'
+          <div className={`rounded-2xl p-6 md:p-8 transition-colors ${
+            isDark ? 'bg-[#1d1d1f] border border-[rgba(255,255,255,0.06)]' : 'bg-white border border-[rgba(0,0,0,0.04)]'
           }`}>
             <div className="flex justify-between items-center mb-5">
-              <h2 className={`text-2xl font-bold ${
-                isModern
-                  ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600'
-                  : 'bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400'
-              }`}>
-                👋 定制化自我介绍
-              </h2>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1d1d1f]'}`}>定制化自我介绍</h2>
               <button
                 onClick={onCopyIntro}
-                className={`px-5 py-2.5 rounded-xl font-semibold transition-all ${
-                  isModern
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105 active:scale-95 ${
+                  isDark ? 'bg-[rgba(255,255,255,0.08)] text-[#2997ff]' : 'bg-[#f5f5f7] text-[#0071e3]'
                 }`}
               >
-                📋 复制
+                复制
               </button>
             </div>
-            <div className={`p-6 rounded-2xl ${
-              isModern ? 'bg-slate-50' : 'bg-slate-800'
-            }`}>
-              <p className={`text-lg leading-relaxed ${
-                isModern ? 'text-slate-800' : 'text-slate-300'
-              }`}>
-                {result.selfIntroduction}
-              </p>
+            <div className={`p-5 rounded-xl ${isDark ? 'bg-[rgba(255,255,255,0.04)]' : 'bg-[#f5f5f7]'}`}>
+              <p className={`text-sm leading-relaxed ${isDark ? 'text-[#a1a1a6]' : 'text-[#6e6e73]'}`}>{result.selfIntroduction}</p>
             </div>
           </div>
         )}
-
-        {activeTab === 'rewrite' && (
-          <ExperienceRewriter 
-            jdText={jdText} 
-            defaultExperience="" 
-          />
-        )}
-
-        {activeTab === 'project' && (
-          <ProjectOptimizer 
-            jdText={jdText} 
-            defaultProject="" 
-          />
-        )}
+        {activeTab === 'rewrite' && <ExperienceRewriter jdText={jdText} defaultExperience="" />}
+        {activeTab === 'project' && <ProjectOptimizer jdText={jdText} defaultProject="" />}
       </div>
     </div>
   );

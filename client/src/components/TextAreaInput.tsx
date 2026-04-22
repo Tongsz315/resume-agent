@@ -9,20 +9,13 @@ interface TextAreaInputProps {
   height?: string;
 }
 
-const TextAreaInput: React.FC<TextAreaInputProps> = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  height = 'h-48',
-}) => {
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
+const TextAreaInput: React.FC<TextAreaInputProps> = ({ label, value, onChange, placeholder, height = 'h-32' }) => {
+  const { isDark } = useTheme();
 
   return (
     <div className="mb-6">
-      <label className={`block text-lg font-semibold mb-3 ${
-        isModern ? 'text-slate-800' : 'text-slate-200'
+      <label className={`block mb-2 text-sm font-semibold tracking-wide ${
+        isDark ? 'text-[#a1a1a6]' : 'text-[#6e6e73]'
       }`}>
         {label}
       </label>
@@ -30,10 +23,10 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full ${height} p-5 rounded-2xl transition-all resize-none ${
-          isModern
-            ? 'bg-white text-slate-800 border-2 border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400'
-            : 'bg-slate-950 text-slate-200 border-2 border-slate-700 focus:border-purple-400 focus:ring-4 focus:ring-purple-900/30 placeholder:text-slate-500'
+        className={`w-full p-4 rounded-xl border resize-none ${height} text-base leading-relaxed transition-all duration-200 focus:outline-none focus:ring-2 ${
+          isDark
+            ? 'bg-[#2d2d2f] border-[rgba(255,255,255,0.06)] text-white placeholder-[#6e6e73] focus:border-[#2997ff] focus:ring-[#2997ff]/20'
+            : 'bg-white border-[rgba(0,0,0,0.08)] text-[#1d1d1f] placeholder-[#86868b] focus:border-[#0071e3] focus:ring-[#0071e3]/20'
         }`}
       />
     </div>

@@ -8,62 +8,45 @@ interface FileUploaderProps {
   onDragOver: (e: React.DragEvent) => void;
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({
-  selectedFile,
-  onFileSelect,
-  onDrop,
-  onDragOver,
-}) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
-
-  const handleClick = () => {
-    inputRef.current?.click();
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onFileSelect(file);
-    }
-  };
+const FileUploader: React.FC<FileUploaderProps> = ({ selectedFile, onFileSelect, onDrop, onDragOver }) => {
+  const { isDark } = useTheme();
 
   return (
-    <div
-      onDrop={onDrop}
-      onDragOver={onDragOver}
-      onClick={handleClick}
-      className={`w-full h-52 border-3 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all ${
-        selectedFile
-          ? isModern
-            ? 'border-emerald-400 bg-emerald-50/80'
-            : 'border-emerald-500 bg-emerald-900/20'
-          : isModern
-            ? 'border-slate-300 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/50'
-            : 'border-slate-600 hover:border-purple-400 bg-slate-900/50 hover:bg-purple-900/20'
-      }`}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".pdf,.doc,.docx"
-        onChange={handleChange}
-        className="hidden"
-      />
-      {selectedFile ? (
-        <>
-          <span className="text-5xl mb-3">✅</span>
-          <span className={`font-semibold ${isModern ? 'text-emerald-700' : 'text-emerald-400'}`}>{selectedFile.name}</span>
-          <span className={`text-sm mt-2 ${isModern ? 'text-slate-500' : 'text-slate-400'}`}>文件已解析</span>
-        </>
-      ) : (
-        <>
-          <span className="text-5xl mb-3">📄</span>
-          <span className={`font-medium ${isModern ? 'text-slate-700' : 'text-slate-300'}`}>点击或拖拽上传 PDF / Word 文件</span>
-          <span className={`text-sm mt-2 ${isModern ? 'text-slate-400' : 'text-slate-500'}`}>支持 .pdf, .doc, .docx</span>
-        </>
-      )}
+    <div>
+      <div
+        onClick={() => document.getElementById('file-input')?.click()}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        className={`p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
+          isDark
+            ? 'border-[rgba(255,255,255,0.1)] hover:border-[#2997ff] hover:bg-[rgba(41,151,255,0.04)]'
+            : 'border-[rgba(0,0,0,0.1)] hover:border-[#0071e3] hover:bg-[rgba(0,113,227,0.03)]'
+        }`}
+      >
+        <input
+          id="file-input"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onFileSelect(file);
+          }}
+          className="hidden"
+        />
+        <div className={`text-sm font-medium ${isDark ? 'text-[#a1a1a6]' : 'text-[#6e6e73]'}`}>
+          {selectedFile ? (
+            <span className={isDark ? 'text-[#2997ff]' : 'text-[#0071e3]'}>{selectedFile.name}</span>
+          ) : (
+            <>
+              <span className={`font-semibold ${isDark ? 'text-[#2997ff]' : 'text-[#0071e3]'}`}>选择文件</span>
+              {' '}或拖拽至此
+            </>
+          )}
+        </div>
+        <p className={`text-xs mt-2 ${isDark ? 'text-[#6e6e73]' : 'text-[#86868b]'}`}>
+          支持 PDF、Word 格式
+        </p>
+      </div>
     </div>
   );
 };

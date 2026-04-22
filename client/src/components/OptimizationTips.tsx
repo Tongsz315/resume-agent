@@ -2,79 +2,35 @@ import React from 'react';
 import { useTheme } from '../contexts';
 
 interface OptimizationTipsProps {
-  tips: {
-    category: string;
-    content: string;
-    priority: 'high' | 'medium' | 'low';
-  }[];
+  tips: { category: string; content: string; priority: 'high' | 'medium' | 'low' }[];
 }
 
 const OptimizationTips: React.FC<OptimizationTipsProps> = ({ tips }) => {
-  const { theme } = useTheme();
-  const isModern = theme === 'modern';
-  
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return {
-          bg: isModern
-            ? 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-200/50'
-            : 'bg-gradient-to-br from-red-900/20 to-rose-900/20 border border-red-800/30',
-          text: isModern ? 'text-red-700' : 'text-red-400',
-          icon: '🚨'
-        };
-      case 'medium':
-        return {
-          bg: isModern
-            ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/50'
-            : 'bg-gradient-to-br from-amber-900/20 to-yellow-900/20 border border-amber-800/30',
-          text: isModern ? 'text-amber-700' : 'text-amber-400',
-          icon: '💡'
-        };
-      default:
-        return {
-          bg: isModern
-            ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50'
-            : 'bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border border-blue-800/30',
-          text: isModern ? 'text-blue-700' : 'text-blue-400',
-          icon: '✨'
-        };
-    }
-  };
-
+  const { isDark } = useTheme();
   if (tips.length === 0) return null;
 
+  const priorityConfig = {
+    high: { color: isDark ? '#ff453a' : '#ff3b30', bg: isDark ? 'rgba(255,69,58,0.08)' : 'rgba(255,59,48,0.06)', label: '高' },
+    medium: { color: '#ff9f0a', bg: isDark ? 'rgba(255,159,10,0.08)' : 'rgba(255,159,10,0.06)', label: '中' },
+    low: { color: isDark ? '#2997ff' : '#0071e3', bg: isDark ? 'rgba(41,151,255,0.08)' : 'rgba(0,113,227,0.05)', label: '低' },
+  };
+
   return (
-    <div className={`mt-6 rounded-3xl shadow-2xl p-6 md:p-8 ${
-      isModern
-        ? 'bg-white/80 backdrop-blur border border-slate-200/50'
-        : 'bg-slate-900/80 backdrop-blur border border-slate-700/50'
+    <div className={`rounded-2xl p-6 md:p-8 transition-colors ${
+      isDark ? 'bg-[#1d1d1f] border border-[rgba(255,255,255,0.06)]' : 'bg-white border border-[rgba(0,0,0,0.04)]'
     }`}>
-      <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${
-        isModern
-          ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600'
-          : 'bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400'
-      }`}>
-        ✏️ 简历优化建议
-      </h2>
-      <div className="space-y-5">
-        {tips.map((tip, index) => {
-          const style = getPriorityStyle(tip.priority);
+      <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-[#1d1d1f]'}`}>优化建议</h2>
+      <div className="space-y-3">
+        {tips.map((tip, i) => {
+          const config = priorityConfig[tip.priority];
           return (
-            <div
-              key={index}
-              className={`p-5 rounded-2xl ${style.bg}`}
-            >
-              <div className="flex items-start gap-4">
-                <span className="text-2xl">{style.icon}</span>
-                <div>
-                  <h4 className={`font-bold mb-2 ${style.text}`}>
-                    {tip.category}
-                  </h4>
-                  <p className={`${isModern ? 'text-slate-800' : 'text-slate-300'}`}>
-                    {tip.content}
-                  </p>
-                </div>
+            <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: config.bg }}>
+              <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium shrink-0 mt-0.5" style={{ background: config.color }}>
+                {config.label}
+              </span>
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold mb-1" style={{ color: config.color }}>{tip.category}</h4>
+                <p className={`text-sm ${isDark ? 'text-[#a1a1a6]' : 'text-[#6e6e73]'}`}>{tip.content}</p>
               </div>
             </div>
           );
